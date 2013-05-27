@@ -36,7 +36,6 @@ public class GameServer{
 	
 	public void broadcast(Client from, String message){
 		message = "c\t" + from.clientID + "\t" + message;
-		//System.out.println("Broadcasting " + message + " to " + players.size() + " clients");
 		synchronized(clients){
 			for(Client c : clients){
 				if(c != null) c.addMessage(message);
@@ -73,9 +72,9 @@ public class GameServer{
 				}else{
 					player = new PlayableCharacter(playerOptions[0], playerOptions[1]);
 				}
-				player.x = 24;
-				player.y = 200;
-				player.health = 50;
+				player.x = 24.0f;
+				player.y = 200.0f;
+				player.health = 75.0f;
 				System.out.println("Test = " + add(player));
 				clientID = player.objectID;
 				
@@ -130,11 +129,19 @@ public class GameServer{
 								obj.ownedBy = player;
 								add(obj);
 								broadcast(this, inputLine + "\t" + obj.objectID);
+							}else if(tokens[0].equals("x")){
+								FExplosion obj = new FExplosion(
+									Float.parseFloat(tokens[1]),
+									Float.parseFloat(tokens[2])
+								);
+								obj.ownedBy = player;
+								add(obj);
+								broadcast(this, inputLine + "\t" + obj.objectID);
 							}else if(tokens[0].equals("h")){
 								player.health = Math.min(Float.parseFloat(tokens[1]), 100);
 								broadcast(this, inputLine);
 							}else if(tokens[0].equals("d")){
-								game.removeObject(Long.parseLong(tokens[1]));
+								GameObject o = game.removeObject(Long.parseLong(tokens[1]));
 								broadcast(this, inputLine);
 							}else{
 								System.err.println("Don't know how to handle " + tokens[0]);

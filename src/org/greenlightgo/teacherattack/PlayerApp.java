@@ -45,9 +45,9 @@ public class PlayerApp extends JFrame implements MouseListener, MouseMotionListe
 }
 
 class CharacterSelect extends JFrame implements ActionListener{
-	JTextField serverBox = new JTextField("localhost");
+	JTextField serverBox = new JTextField("10.0.1.12");
 	JTextField portBox = new JTextField("1234");
-	JTextField nameBox = new JTextField("dom");
+	JTextField nameBox = new JTextField();
 	public CharacterSelect() throws Exception{
 		JPanel container = new JPanel();
 		container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -162,7 +162,7 @@ class GameWindow extends JFrame implements KeyListener, MouseListener, WindowLis
 		);
 		t.start();
 		addWindowListener(this);
-		if(player instanceof BadGuy) addMouseListener(this);
+		if(player instanceof BadGuy) mapRenderer.addMouseListener(this);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
 	
@@ -175,12 +175,12 @@ class GameWindow extends JFrame implements KeyListener, MouseListener, WindowLis
 	public void keyTyped(KeyEvent e){}
 	
 	public void mouseReleased(MouseEvent e) {
-		float x = player.x + 30 + ((int)(Math.random()*2) * 120);
+		float x = player.x + 20 + ((int)(Math.random()*2) * 130);
 		client.addMessage(
 			"b\t" + x + "\t" + (player.y+120) +
 			"\t4.0" + 
-			"\t" + (e.getX() - mapRenderer.offset[0]) +
-			"\t" + (e.getY() - mapRenderer.offset[0])
+			"\t" + (e.getX() - mapRenderer.offset[0] - 16) +
+			"\t" + (e.getY() - mapRenderer.offset[1] - 16)
 		);
 	}
 	public void mouseEntered(MouseEvent e) {}
@@ -244,7 +244,8 @@ class GameWindow extends JFrame implements KeyListener, MouseListener, WindowLis
 			keyStates[32] = false;
 		}
 		
-		mapRenderer.centerOn((int)player.x, (int)player.y);
+		Rectangle box = player.getRectangle();
+		mapRenderer.centerOn(box.x + box.width/2, box.y + box.height/2);
 	}
 	
 	private int fps = 60;
@@ -255,7 +256,7 @@ class GameWindow extends JFrame implements KeyListener, MouseListener, WindowLis
 		final int TARGET_FPS = 60;
 		final long OPTIMAL_TIME = 1000000000 / TARGET_FPS;
 
-		while (true){
+		while (player.health > 0.0f){
 			long now = System.nanoTime();
 			long updateLength = now - lastLoopTime;
 			lastLoopTime = now;
@@ -287,11 +288,12 @@ class GameWindow extends JFrame implements KeyListener, MouseListener, WindowLis
 						o.flagForUpdate = false;
 					}
 				}
-				for(GameObject o : toRemove){
-					game.removeObject(o.objectID);
-				}
-							
 
+				for(GameObject o : toRemove){
+					if(!(o instanceof FBomb) || o.ownedBy != player){
+						game.removeObject(o.objectID);
+					}
+				}
 				client.update();
 			}
 			repaint();
@@ -300,6 +302,8 @@ class GameWindow extends JFrame implements KeyListener, MouseListener, WindowLis
 				Thread.sleep((lastLoopTime-System.nanoTime() + OPTIMAL_TIME)/1000000);
 			}catch(Exception exc){};
 		}
+	
+		JOptionPane.showMessageDialog(this, "Oh no, you died! Here's a snapshot of your gruesome death.\n\nTo continue, close the window and select a new character.");
 	}
 }
 

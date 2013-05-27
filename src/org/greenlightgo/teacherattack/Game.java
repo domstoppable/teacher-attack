@@ -44,6 +44,17 @@ class Game {
 						player.flagForUpdate = true;
 						attack.lifespan = 0;
 						attack.flagForRemoval = true;
+					}else if(attack.type.equals("dom") && !(player instanceof BadGuy)){
+						float damage = 1.5f;
+						if(player.type.equals("warrior")) damage /= 3.0f;
+						player.health -= damage;
+						player.flagForUpdate = true;
+						attack.flagForRemoval = true;
+					}else if(attack.type.equals("fexplosion") && !(player instanceof BadGuy)){
+						float damage = 2.0f;
+						if(player.type.equals("warrior")) damage /= 3.0f;
+						player.health -= damage;
+						player.flagForUpdate = true;
 					}
 				}
 			}

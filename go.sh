@@ -1,6 +1,6 @@
 #!/bin/bash
 
-javac -d bin src/org/greenlightgo/teacherattack/*.java
+javac -source 1.5 -target 1.5 -d bin src/org/greenlightgo/teacherattack/*.java
 if [ $? -eq 0 ]; then
 	cd bin
 	class=$1

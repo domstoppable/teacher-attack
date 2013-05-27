@@ -118,6 +118,7 @@ class TileSelector extends JPanel {
 			TileButton b = new TileButton(tile);
 			add(b);
 		}
+		add(new TileButton());
 	}
 	
 	public void setButton(TileButton button){
@@ -126,10 +127,17 @@ class TileSelector extends JPanel {
 	
 	class TileButton extends JButton{
 		Tile tile;
+		TileButton(){
+			init();
+		}
+		
 		TileButton(Tile t){
 			super(new ImageIcon(t.image));
 			tile = t;
-			
+			init();
+		}
+		
+		private void init(){
 			addActionListener(
 				new ActionListener(){
 					public void actionPerformed(ActionEvent ae){
@@ -140,4 +148,3 @@ class TileSelector extends JPanel {
 		}
 	}
 }
-

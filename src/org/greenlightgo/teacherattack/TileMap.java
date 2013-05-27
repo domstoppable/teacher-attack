@@ -182,7 +182,7 @@ class Tile{
 	
 	public boolean onCollide(GameObject object){
 		if(name.equals("tile-hole.png")){
-			System.err.println("hole");
+			//System.err.println("hole");
 		}
 		return true;
 	}

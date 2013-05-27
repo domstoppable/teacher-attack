@@ -38,7 +38,7 @@ abstract class GameObject{
 class PlayableCharacter extends GameObject{
 	static HashMap<String, Image> tilesets = new HashMap<String, Image>();
 	
-	float health;
+	float health = 75.0f;
 	
 	Image tileset;
 	String name;
@@ -220,6 +220,15 @@ class FBomb extends AttackObject{
 	}
 }
 
+class FExplosion extends AttackObject{
+	public FExplosion(float x, float y) throws Exception{
+		super(x, y, 0, 0, "fexplosion");
+		setAnimationDetails(this.image, 4, 8);
+		lifespan = 24;
+	}
+}
+
+
 class AnimatedSprite extends GameObject{
 	Image image;
 	int fps, frames;
@@ -229,6 +238,11 @@ class AnimatedSprite extends GameObject{
 	public AnimatedSprite(float x, float y, Image image, int frames, int fps){
 		this.x = x;
 		this.y = y;
+		
+		setAnimationDetails(image, frames, fps);
+	}
+	
+	public void setAnimationDetails(Image image, int frames, int fps){
 		this.image = image;
 		this.fps = fps;
 		this.frames = frames;

@@ -119,8 +119,20 @@ public class GameClient extends Thread{
 						if(clientID == this.clientID){
 							attack.ownedBy = player;
 						}
+					}else if(tokens[2].equals("x")){
+						FExplosion attack = new FExplosion(
+							Float.parseFloat(tokens[3]),
+							Float.parseFloat(tokens[4])
+						);
+						game.addObject(Long.parseLong(tokens[5]), attack);
+						if(clientID == this.clientID){
+							attack.ownedBy = player;
+						}
 					}else if(tokens[2].equals("d")){
-						game.removeObject(Long.parseLong(tokens[3]));
+						GameObject o = game.removeObject(Long.parseLong(tokens[3]));
+						if(o instanceof FBomb && o.ownedBy == player){
+							addMessage("x\t" + o.x + "\t" + o.y);
+						}
 					}else{
 						System.err.println("Don't know how to handle " + tokens[2]);
 					}
