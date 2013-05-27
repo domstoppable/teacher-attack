@@ -14,10 +14,15 @@ import java.awt.event.*;
 
 public class PlayerApp extends JFrame implements MouseListener, MouseMotionListener{
 	public static void main(String args[]) throws Exception{
-		JFrame window = new CharacterSelect();
-		window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		window.setVisible(true);
-		window.pack();
+		if(args.length > 0 && args[0].equals("--domosaurus")){
+			BadGuy player = new BadGuy("Domosaurus Rex", "dom");
+			new GameWindow(player, args[1], Integer.parseInt(args[2]));
+		}else{
+			JFrame window = new CharacterSelect();
+			window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			window.setVisible(true);
+			window.pack();
+		}
 	}
 	
 	TileMap map;
@@ -85,10 +90,6 @@ class CharacterSelect extends JFrame implements ActionListener{
 		PlayableCharacter player;
 		try{
 			player = new PlayableCharacter(nameBox.getText().trim(), cmd);
-			
-			if(cmd.equals("warrior")){
-				player.speed = 2;
-			}
 		}catch(Exception exc){
 			throw new RuntimeException(exc);
 		}
@@ -118,7 +119,7 @@ class CharacterSelect extends JFrame implements ActionListener{
 	}
 }
 
-class GameWindow extends JFrame implements KeyListener{
+class GameWindow extends JFrame implements KeyListener, MouseListener, WindowListener{
 	Game game;
 	TileMap map;
 	MapRenderer mapRenderer;
@@ -160,6 +161,9 @@ class GameWindow extends JFrame implements KeyListener{
 			}
 		);
 		t.start();
+		addWindowListener(this);
+		if(player instanceof BadGuy) addMouseListener(this);
+		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
 	}
 	
 	public void keyPressed(KeyEvent e){
@@ -170,6 +174,30 @@ class GameWindow extends JFrame implements KeyListener{
 	}
 	public void keyTyped(KeyEvent e){}
 	
+	public void mouseReleased(MouseEvent e) {
+		float x = player.x + 30 + ((int)(Math.random()*2) * 120);
+		client.addMessage(
+			"b\t" + x + "\t" + (player.y+120) +
+			"\t4.0" + 
+			"\t" + (e.getX() - mapRenderer.offset[0]) +
+			"\t" + (e.getY() - mapRenderer.offset[0])
+		);
+	}
+	public void mouseEntered(MouseEvent e) {}
+	public void mouseExited(MouseEvent e) {}
+	public void mousePressed(MouseEvent e) {}
+	public void mouseClicked(MouseEvent e) {}
+	
+	public void windowClosed(WindowEvent e) {
+		client.addMessage("d\t" + player.objectID);
+	}
+	public void windowActivated(WindowEvent e) {}
+	public void windowClosing(WindowEvent e) {}
+	public void windowDeactivated(WindowEvent e) {}
+	public void windowDeiconified(WindowEvent e) {}
+	public void windowIconified(WindowEvent e) {}
+	public void windowOpened(WindowEvent e) {}
+
 	public void inputUpdate(double delta){
 		float[] adjust = {0, 0};
 		
@@ -194,14 +222,14 @@ class GameWindow extends JFrame implements KeyListener{
 			float[] previous = {player.x, player.y};
 			player.x += adjust[0];
 			player.y += adjust[1];
-			if(!map.checkPosition(player)){
+			if(!(player instanceof BadGuy) && !map.checkPosition(player)){
 				player.x = previous[0];
 				player.y = previous[1];
 			}else{
 				player.flagForUpdate = true;
 			}
 		}
-		if(keyStates[32]){
+		if(keyStates[32] && !(player instanceof BadGuy)){
 			float cx = player.x;
 			float cy = player.y;
 			float offset = 16;
@@ -237,7 +265,7 @@ class GameWindow extends JFrame implements KeyListener{
 			fps++;
 
 			if (lastFpsTime >= 1000000000){
-				System.out.println("(FPS: "+fps+")");
+				//System.out.println("(FPS: "+fps+")");
 				lastFpsTime = 0;
 				fps = 0;
 			}
@@ -248,17 +276,15 @@ class GameWindow extends JFrame implements KeyListener{
 				player.health = Math.min(player.health, 100);
 				LinkedList<GameObject> toRemove = new LinkedList<GameObject>();
 				for(GameObject o : game.objects.values()){
-					if(o == player || o.ownedBy == player){
-						if(o.flagForRemoval){
-							client.addMessage("d\t" + o.objectID);
-							toRemove.add(o);
-						}else if(o.flagForUpdate){
-							client.addMessage("p\t" + o.x + "\t" + o.y + "\t" + o.direction);
-							if(o instanceof PlayableCharacter){
-								client.addMessage("h\t" + ((PlayableCharacter)o).health);
-							}
-							o.flagForUpdate = false;
+					if(o.flagForRemoval){
+						client.addMessage("d\t" + o.objectID);
+						toRemove.add(o);
+					}else if(o.flagForUpdate){
+						client.addMessage("p\t" + o.x + "\t" + o.y + "\t" + o.direction);
+						if(o instanceof PlayableCharacter){
+							client.addMessage("h\t" + ((PlayableCharacter)o).health);
 						}
+						o.flagForUpdate = false;
 					}
 				}
 				for(GameObject o : toRemove){

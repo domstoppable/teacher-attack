@@ -22,7 +22,7 @@ abstract class GameObject{
 	
 	float x, y;
 	float speed = 1;
-	int direction;
+	protected int direction;
 	
 	boolean flagForRemoval = false;
 	boolean flagForUpdate = false;
@@ -106,16 +106,63 @@ class PlayableCharacter extends GameObject{
 
 }
 
+class BadGuy extends PlayableCharacter{
+	public BadGuy(String name, String type) throws Exception{
+		super(name, type);
+		this.direction = 0;
+		this.speed = 2.5f;
+	}
+	
+	public void setDirection(int direction){
+		// do nothing, direciton should always be 0
+	}
+	
+	public Rectangle getRectangle(){
+		return new Rectangle((int)x, (int)y, 200, 320);
+	}
+
+	public void render(Graphics2D g){
+		int frameOffset = (int)((System.currentTimeMillis() / 500) % 12);
+		int imageSource = 200*frameOffset;
+		
+		g.drawImage(
+			tileset,
+			(int)x, (int)y,
+			(int)x+200, (int)y+320,
+			imageSource, 0,
+			imageSource+200, 320,
+			null
+		);
+		if(currentMessage != null){
+			g.drawString(currentMessage, x-10, y-10);
+			if(System.currentTimeMillis() - messageStartTime > 6000l){
+				currentMessage = null;
+			}
+		}
+		Font f = g.getFont();
+		g.setFont(f.deriveFont(Font.BOLD, f.getSize()*2));
+		g.drawString(name, x-10, y);
+		g.setFont(f);
+		g.setColor(Color.RED);
+		g.fillRect((int)x, (int)y+10, 210, 4);
+		g.setColor(Color.GREEN);
+		g.fillRect((int)x, (int)y+10, (int)(210 * health / 100), 4);
+		g.setColor(Color.BLACK);
+	}
+}
+
 class AttackObject extends AnimatedSprite{
 	String type;
 	double lifespan;
 	
 	public AttackObject(float x, float y, float speed, int direction, String type) throws Exception{
-		super(x, y, ImageIO.read(new File("resources/attack.png")), 2, 6);
+		super(x, y, ImageIO.read(new File("resources/" + type + "-attack.png")), 2, 6);
 		this.speed = speed;
 		this.direction = direction;
 		this.type = type;
 		if(type.equals("wizard")){
+			lifespan = 128.0d;
+		}else if(type.equals("dom")){
 			lifespan = 128.0d;
 		}else{
 			lifespan = 8.0d;
@@ -141,10 +188,43 @@ class AttackObject extends AnimatedSprite{
 	}
 }
 
+class FBomb extends AttackObject{
+	float dx, dy;
+	float[] lastDelta = null;
+	public FBomb(float x, float y, float speed, float dx, float dy) throws Exception{
+		super(x, y, speed, 0, "dom");
+		this.dx = dx;
+		this.dy = dy;
+	}
+	
+	public void update(double delta){
+		super.update(delta);
+		float[] posDelta = {
+			Math.signum(this.dx - x) * speed * (float)delta,
+			Math.signum(this.dy - y) * speed * (float)delta
+		};
+		if(lastDelta != null){
+			if(posDelta[0] * lastDelta[0] < 0){
+				posDelta[0] = 0.0f;
+				x = dx;
+			}
+			if(posDelta[1] * lastDelta[1] < 0){
+				posDelta[1] = 0.0f;
+				y = dy;
+			}
+		}
+		x += posDelta[0];
+		y += posDelta[1];
+		
+		lastDelta = posDelta;
+	}
+}
+
 class AnimatedSprite extends GameObject{
 	Image image;
 	int fps, frames;
 	int frame;
+	int frameWidth, frameHeight;
 	
 	public AnimatedSprite(float x, float y, Image image, int frames, int fps){
 		this.x = x;
@@ -152,22 +232,25 @@ class AnimatedSprite extends GameObject{
 		this.image = image;
 		this.fps = fps;
 		this.frames = frames;
+		
+		this.frameWidth = image.getWidth(null)/frames;
+		this.frameHeight = image.getHeight(null);
 	}
 	
 	public Rectangle getRectangle(){
-		return new Rectangle((int)x, (int)y, 16, 16);
+		return new Rectangle((int)x, (int)y, frameWidth, frameHeight);
 	}
 	
 	public void render(Graphics2D g){
 		frame = (int)((System.currentTimeMillis() / (1000 / fps)) % frames);
-		int frameOffset = 16*frame;
+		int frameOffset = frameWidth*frame;
 		
 		g.drawImage(
 			image,
 			(int)x, (int)y,
-			(int)x+16, (int)y+16,
+			(int)x+frameWidth, (int)y+frameHeight,
 			frameOffset, 0,
-			frameOffset+16, 16,
+			frameOffset+frameWidth, frameHeight,
 			null
 		);
 	}

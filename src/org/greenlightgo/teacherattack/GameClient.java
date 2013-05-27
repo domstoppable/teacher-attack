@@ -80,7 +80,11 @@ public class GameClient extends Thread{
 						
 						String name = tokens[3];
 						String type = tokens[4];
-						game.addObject(clientID, new PlayableCharacter(name, type));
+						if(type.equals("dom")){
+							game.addObject(clientID, new BadGuy(name, type));
+						}else{
+							game.addObject(clientID, new PlayableCharacter(name, type));
+						}
 					}else if(tokens[2].equals("p")){
 						if(clientID == this.clientID) continue;
 						
@@ -88,15 +92,28 @@ public class GameClient extends Thread{
 						obj.y = Float.parseFloat(tokens[4]);
 						obj.direction = Integer.parseInt(tokens[5]);
 					}else if(tokens[2].equals("h")){
-						((PlayableCharacter)obj).health = Float.parseFloat(tokens[3]);
+						PlayableCharacter p = ((PlayableCharacter)obj);
+						p.health = Float.parseFloat(tokens[3]);
+						if(p.health <= 0.0f) p.flagForRemoval = true;
 					}else if(tokens[2].equals("a")){
-						System.err.println(clientID + " ATTACK");
 						AttackObject attack = new AttackObject(
 							Float.parseFloat(tokens[3]),
 							Float.parseFloat(tokens[4]),
 							Float.parseFloat(tokens[5]),
 							Integer.parseInt(tokens[6]),
 							tokens[7]
+						);
+						game.addObject(Long.parseLong(tokens[8]), attack);
+						if(clientID == this.clientID){
+							attack.ownedBy = player;
+						}
+					}else if(tokens[2].equals("b")){
+						FBomb attack = new FBomb(
+							Float.parseFloat(tokens[3]),
+							Float.parseFloat(tokens[4]),
+							Float.parseFloat(tokens[5]),
+							Integer.parseInt(tokens[6]),
+							Integer.parseInt(tokens[7])
 						);
 						game.addObject(Long.parseLong(tokens[8]), attack);
 						if(clientID == this.clientID){

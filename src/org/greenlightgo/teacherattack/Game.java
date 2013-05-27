@@ -32,7 +32,15 @@ class Game {
 				AttackObject attack = (AttackObject)obj;
 				if(obj.getRectangle().intersects(player.getRectangle())){
 					if(attack.type.equals("healer")){
-						player.health += 0.1f;
+						player.health += 0.5f;
+						player.flagForUpdate = true;
+						attack.lifespan = 0;
+						attack.flagForRemoval = true;
+					}else if(player instanceof BadGuy && attack.ownedBy != player){
+						float damage = 0.1f;
+						if(attack.type.equals("warrior")) damage *= 2.5f;
+						
+						player.health -= damage;
 						player.flagForUpdate = true;
 						attack.lifespan = 0;
 						attack.flagForRemoval = true;

@@ -39,7 +39,7 @@ public class GameServer{
 		//System.out.println("Broadcasting " + message + " to " + players.size() + " clients");
 		synchronized(clients){
 			for(Client c : clients){
-				c.addMessage(message);
+				if(c != null) c.addMessage(message);
 			}
 		}
 	}
@@ -68,7 +68,11 @@ public class GameServer{
 				BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
 				String[] playerOptions = in.readLine().split("\t");
-				player = new PlayableCharacter(playerOptions[0], playerOptions[1]);
+				if(playerOptions[1].equals("dom")){
+					player = new BadGuy(playerOptions[0], playerOptions[1]);
+				}else{
+					player = new PlayableCharacter(playerOptions[0], playerOptions[1]);
+				}
 				player.x = 24;
 				player.y = 200;
 				player.health = 50;
@@ -80,14 +84,12 @@ public class GameServer{
 				broadcast(this, "j\t" + player.name + "\t" + player.type);
 				
 				for(GameObject obj : game.objects.values()){
-					System.err.println("Sending object " + obj.objectID + " = " + obj);
 					if(obj instanceof PlayableCharacter){
 						PlayableCharacter character = (PlayableCharacter)obj;
 						out.println("c\t" + obj.objectID + "\tj\t" + character.name + "\t" + character.type);
 						out.println("c\t" + obj.objectID + "\tp\t" + character.x + "\t" + character.y + "\t" + character.direction);
 						out.println("c\t" + obj.objectID + "\th\t" + character.health);
 					}else if(obj instanceof AttackObject){
-						System.err.println("Sending attack!");
 						AttackObject attack = (AttackObject)obj;
 						out.println("c\t" + attack.ownedBy.objectID + "\ta\t" + attack.x + "\t" + attack.y + "\t" + attack.speed + "\t" + attack.direction + "\t" + attack.type + "\t" + attack.objectID);
 					}
@@ -117,6 +119,17 @@ public class GameServer{
 								obj.ownedBy = player;
 								add(obj);
 								broadcast(this, inputLine + "\t" + obj.objectID);
+							}else if(tokens[0].equals("b")){
+								FBomb obj = new FBomb(
+									Float.parseFloat(tokens[1]),
+									Float.parseFloat(tokens[2]),
+									Float.parseFloat(tokens[3]),
+									Integer.parseInt(tokens[4]),
+									Integer.parseInt(tokens[5])
+								);
+								obj.ownedBy = player;
+								add(obj);
+								broadcast(this, inputLine + "\t" + obj.objectID);
 							}else if(tokens[0].equals("h")){
 								player.health = Math.min(Float.parseFloat(tokens[1]), 100);
 								broadcast(this, inputLine);
@@ -134,7 +147,7 @@ public class GameServer{
 						}
 						messages.clear();
 					}
-				}while(inputLine != null);
+				}while(inputLine != null && player.health > 0.0f);
 				
 				out.close();
 				in.close();
