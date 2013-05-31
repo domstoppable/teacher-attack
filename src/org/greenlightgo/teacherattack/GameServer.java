@@ -4,11 +4,17 @@ import java.io.*;
 import java.util.*;
 import java.net.*;
 
+import javax.swing.JOptionPane;
+
 public class GameServer{
 	static long objectCount;
 	
 	public static void main(String[] args) throws Exception{
-		new GameServer(Integer.parseInt(args[0]));
+		try{
+			new GameServer(Integer.parseInt(args[0]));
+		}catch(Exception exc){
+			new GameServer(Integer.parseInt(JOptionPane.showInputDialog(null, "Enter port number")));
+		}
 	}
 	
 	Game game;

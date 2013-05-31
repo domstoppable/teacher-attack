@@ -45,8 +45,8 @@ public class PlayerApp extends JFrame implements MouseListener, MouseMotionListe
 }
 
 class CharacterSelect extends JFrame implements ActionListener{
-	JTextField serverBox = new JTextField("10.0.1.12");
-	JTextField portBox = new JTextField("1234");
+	JTextField serverBox = new JTextField("localhost");
+	JTextField portBox = new JTextField("");
 	JTextField nameBox = new JTextField();
 	public CharacterSelect() throws Exception{
 		JPanel container = new JPanel();
