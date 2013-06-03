@@ -32,7 +32,7 @@ class Game {
 				AttackObject attack = (AttackObject)obj;
 				if(obj.getRectangle().intersects(player.getRectangle())){
 					if(attack.type.equals("healer")){
-						player.health += 0.5f;
+						player.health += 5.0f;
 						player.flagForUpdate = true;
 						attack.lifespan = 0;
 						attack.flagForRemoval = true;

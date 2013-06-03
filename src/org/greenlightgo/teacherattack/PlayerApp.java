@@ -46,8 +46,8 @@ public class PlayerApp extends JFrame implements MouseListener, MouseMotionListe
 
 class CharacterSelect extends JFrame implements ActionListener{
 	JTextField serverBox = new JTextField("localhost");
-	JTextField portBox = new JTextField("");
-	JTextField nameBox = new JTextField();
+	JTextField portBox = new JTextField("1234");
+	JTextField nameBox = new JTextField("Student");
 	public CharacterSelect() throws Exception{
 		JPanel container = new JPanel();
 		container.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
@@ -101,13 +101,14 @@ class CharacterSelect extends JFrame implements ActionListener{
 		try{
 			new GameWindow(player, serverBox.getText(), Integer.parseInt(portBox.getText()));
 		}catch(Exception exc){
+			JOptionPane.showMessageDialog(this, exc.getMessage());
 			throw new RuntimeException(exc);
 		}
 	}
 	
 	private JButton createCharacterButton(String character) throws Exception{
 		int cropSize = 48;
-		BufferedImage image = ImageIO.read(new File("resources/" + character + ".png"));
+		BufferedImage image = ImageIO.read(Game.class.getClassLoader().getResource("resources/" + character + ".png"));
 		BufferedImage cropped = new BufferedImage(cropSize, cropSize, image.getType());
 		cropped.getGraphics().drawImage(image, 0, 0, cropSize, cropSize, 0, 0, 16, 16, null);
 		JButton b = new JButton(
@@ -125,6 +126,7 @@ class GameWindow extends JFrame implements KeyListener, MouseListener, WindowLis
 	MapRenderer mapRenderer;
 	PlayableCharacter player;
 	GameClient client;
+	long lastAttackTime = 0l;
 
 	boolean[] keyStates = new boolean[255];
 	
@@ -132,7 +134,7 @@ class GameWindow extends JFrame implements KeyListener, MouseListener, WindowLis
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		this.player = player;
 		
-		map = TileMap.load(new File("resources/basic.map"), TileMap.loadTiles());
+		map = TileMap.load("resources/basic.map", TileMap.loadTiles());
 		game = new Game();
 		mapRenderer = new MapRenderer(map, game);
 		client = new GameClient(
@@ -229,18 +231,28 @@ class GameWindow extends JFrame implements KeyListener, MouseListener, WindowLis
 				player.flagForUpdate = true;
 			}
 		}
-		if(keyStates[32] && !(player instanceof BadGuy)){
-			float cx = player.x;
-			float cy = player.y;
-			float offset = 16;
-			if(player.type.equals("healer")) offset = 24;
+		if(keyStates[32]){
+			if((player instanceof BadGuy)){
+				player.health += 5;
+				player.flagForUpdate = true;
+			}else{
+				long time = System.currentTimeMillis();
+				if(time - lastAttackTime > 500){
+					lastAttackTime = time;
+					
+					float cx = player.x;
+					float cy = player.y;
+					float offset = 16;
+					if(player.type.equals("healer")) offset = 24;
 
-			if(player.direction == GameObject.UP) cy -= offset;
-			if(player.direction == GameObject.LEFT) cx -= offset;
-			if(player.direction == GameObject.DOWN) cy += offset;
-			if(player.direction == GameObject.RIGHT) cx += offset;
-			
-			client.addMessage("a\t" + cx + "\t" + cy + "\t" + player.speed*4 + "\t" + player.direction + "\t" + player.type);
+					if(player.direction == GameObject.UP) cy -= offset;
+					if(player.direction == GameObject.LEFT) cx -= offset;
+					if(player.direction == GameObject.DOWN) cy += offset;
+					if(player.direction == GameObject.RIGHT) cx += offset;
+				
+					client.addMessage("a\t" + cx + "\t" + cy + "\t" + player.speed*4 + "\t" + player.direction + "\t" + player.type);
+				}
+			}
 			keyStates[32] = false;
 		}
 		

@@ -63,7 +63,7 @@ public class TileMap {
 			PrintWriter writer = new PrintWriter(file);
 			for(int i=0; i<tiles.length; i++){
 				tiles[i].id = i;
-				writer.println(tiles[i].file.getName());
+				writer.println(tiles[i]);
 			}
 			writer.println("");
 			writer.println(this.tileSize + "\t" + this.tiles.length + "\t" + this.tiles[0].length);
@@ -84,10 +84,18 @@ public class TileMap {
 			System.err.format("IOException: %s%n", x);
 		}
 	}
+
+	public static TileMap load(String mapName, Tile[] tiles){
+		return load(new InputStreamReader(Game.class.getClassLoader().getResourceAsStream(mapName)), tiles);
+	}
+
+	public static TileMap load(File file, Tile[] tiles) throws Exception{
+		return load(new FileReader(file), tiles);
+	}
 	
-	public static TileMap load(File file, Tile[] tiles){
+	public static TileMap load(Reader input, Tile[] tiles){
 		try{
-			BufferedReader reader = new BufferedReader(new FileReader(file));
+			BufferedReader reader = new BufferedReader(input);
 			String line;
 			ArrayList<Tile> tileLookup = new ArrayList<Tile>(tiles.length);
 			do{
@@ -96,7 +104,7 @@ public class TileMap {
 				
 				boolean found = false;
 				for(Tile t : tiles){
-					if(t.file.getName().equals(line)){
+					if(t.toString().equals(line)){
 						tileLookup.add(t);
 						found = true;
 						break;
@@ -115,7 +123,8 @@ public class TileMap {
 				Integer.parseInt(items[1]),
 				Integer.parseInt(items[2])
 			);
-			map.setBackgroundImage(ImageIO.read(new File("resources/background.png")));
+			//map.setBackgroundImage(ImageIO.read(new File("resources/background.png")));
+			map.setBackgroundImage(ImageIO.read(Game.class.getClassLoader().getResource("resources/background.png")));
 			
 			// now fill in the data
 			int y = 0;
@@ -137,22 +146,15 @@ public class TileMap {
 			
 		}catch(Exception exc){
 			System.err.format("Exception: %s%n", exc);
+			throw new RuntimeException(exc);
 		}
-		
-		return null;
 	}
 
 	public static Tile[] loadTiles(){
-		File[] files = new File("resources").listFiles(
-			new FilenameFilter(){
-				public boolean accept(File dir, String name){
-					return name.toLowerCase().matches("tile-.*\\.png");
-				}
-			}
-		);
-		Tile[] tiles = new Tile[files.length];
-		for(int i=0; i<files.length; i++){
-			tiles[i] = new Tile(files[i]);
+		String[] images = new String[]{"hole", "rock", "tree1", "tree3", "tree", "plant", "sign", "tree2", "tree4"};
+		Tile[] tiles = new Tile[images.length];
+		for(int i=0; i<images.length; i++){
+			tiles[i] = new Tile("tile-" + images[i] + ".png");
 		}
 		
 		return tiles;
@@ -160,24 +162,31 @@ public class TileMap {
 }
 
 class Tile{
-	public File file;
 	public Image image;
 	public int id;
 	
 	String name;
 	
 	public Tile(File f){
-		file = f;
 		this.name = f.getName();
 		try{
-			image = ImageIO.read(file);
+			image = ImageIO.read(f);
+		}catch(Exception exc){
+			throw new RuntimeException(exc);
+		}
+	}
+	
+	public Tile(String name){
+		this.name = name;
+		try{
+			image = ImageIO.read(Game.class.getClassLoader().getResource("resources/" + name));
 		}catch(Exception exc){
 			throw new RuntimeException(exc);
 		}
 	}
 	
 	public String toString() {
-		return file.getName();
+		return name;
 	}
 	
 	public boolean onCollide(GameObject object){

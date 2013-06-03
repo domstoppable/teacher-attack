@@ -34,8 +34,7 @@ public class GameServer{
 	}
 	
 	public synchronized long add(GameObject o){
-		long objectID = objectCount;
-		objectCount++;
+		long objectID = objectCount++;
 		game.addObject(objectID, o);
 		return objectID;
 	}
@@ -75,13 +74,16 @@ public class GameServer{
 				String[] playerOptions = in.readLine().split("\t");
 				if(playerOptions[1].equals("dom")){
 					player = new BadGuy(playerOptions[0], playerOptions[1]);
+					player.x = 500.0f;
+					player.y = -384.0f;
+					player.health = 100.0f;
 				}else{
 					player = new PlayableCharacter(playerOptions[0], playerOptions[1]);
+					player.x = 162.0f + (float)(Math.random() * 700.0f);
+					player.y = 680.0f;
+					player.health = 75.0f;
 				}
-				player.x = 24.0f;
-				player.y = 200.0f;
-				player.health = 75.0f;
-				System.out.println("Test = " + add(player));
+				add(player);
 				clientID = player.objectID;
 				
 				out.println(clientID + "\t" + player.x + "\t" + player.y + "\t" + player.direction);

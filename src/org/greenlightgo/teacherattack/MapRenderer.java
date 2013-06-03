@@ -17,13 +17,23 @@ public class MapRenderer extends JPanel{
 	}
 	
 	public void centerOn(int x, int y){
-		offset[0] = (getWidth()/2-x);
-		offset[1] = (getHeight()/2-y);
+		int w = getWidth();
+		int h = getHeight();
 		
-		offset[0] = Math.min(tileMap.tileSize, offset[0]);		
-		offset[0] = Math.max(getWidth() -(tileMap.tiles.length+1) * tileMap.tileSize, offset[0]);
-		offset[1] = Math.min(tileMap.tileSize, offset[1]);
-		offset[1] = Math.max(getHeight() -(tileMap.tiles[0].length+1) * tileMap.tileSize, offset[1]);
+		if(w > tileMap.tileSize * tileMap.tiles.length){
+			offset[0] = (w - tileMap.tileSize * tileMap.tiles.length) / 2;
+		}else{
+			offset[0] = (w/2-x);
+			offset[0] = Math.min(tileMap.tileSize, offset[0]);		
+			offset[0] = Math.max(w -(tileMap.tiles.length+1) * tileMap.tileSize, offset[0]);
+		}
+		if(h > tileMap.tileSize * tileMap.tiles[0].length){
+			offset[1] = (h - tileMap.tileSize * tileMap.tiles[0].length) / 2;
+		}else{
+			offset[1] = h/2-y;
+			offset[1] = Math.min(tileMap.tileSize, offset[1]);
+			offset[1] = Math.max(h -(tileMap.tiles[0].length+1) * tileMap.tileSize, offset[1]);
+		}
 		
 	}
 	

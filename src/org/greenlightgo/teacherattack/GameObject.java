@@ -9,7 +9,6 @@ import javax.swing.border.*;
 import javax.swing.event.*;
 import javax.imageio.*;
 
-
 abstract class GameObject{
 	public static final int DOWN = 0;
 	public static final int UP = 1;
@@ -20,7 +19,7 @@ abstract class GameObject{
 	
 	long objectID;
 	
-	float x, y;
+	float x = -100, y = -100;
 	float speed = 1;
 	protected int direction;
 	
@@ -48,7 +47,7 @@ class PlayableCharacter extends GameObject{
 	
 	public PlayableCharacter(String name, String type) throws Exception{
 		if(!tilesets.containsKey(type)){
-			tilesets.put(type, ImageIO.read(new File("resources/" + type + ".png")));
+			tilesets.put(type, ImageIO.read(Game.class.getClassLoader().getResource("resources/" + type + ".png")));
 		}
 		
 		this.name = name;
@@ -156,7 +155,7 @@ class AttackObject extends AnimatedSprite{
 	double lifespan;
 	
 	public AttackObject(float x, float y, float speed, int direction, String type) throws Exception{
-		super(x, y, ImageIO.read(new File("resources/" + type + "-attack.png")), 2, 6);
+		super(x, y, ImageIO.read(Game.class.getClassLoader().getResource("resources/" + type + "-attack.png")), 2, 6);
 		this.speed = speed;
 		this.direction = direction;
 		this.type = type;
@@ -227,7 +226,6 @@ class FExplosion extends AttackObject{
 		lifespan = 24;
 	}
 }
-
 
 class AnimatedSprite extends GameObject{
 	Image image;

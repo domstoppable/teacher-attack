@@ -31,7 +31,7 @@ public class TileEditor extends JFrame implements MouseListener, MouseMotionList
 		selector = new TileSelector(tiles);
 		map = new TileMap(16, 64, 48);
 		try{
-			map.setBackgroundImage(ImageIO.read(new File("resources/background.png")));
+			map.setBackgroundImage(ImageIO.read(Game.class.getClassLoader().getResource("resources/background.png")));
 		}catch(Exception exc){}
 		mapRenderer = new MapRenderer(map, new Game());
 		mapRenderer.addMouseListener(this);
@@ -52,22 +52,26 @@ public class TileEditor extends JFrame implements MouseListener, MouseMotionList
 	JFileChooser fileDialog = new JFileChooser();
 	FileNameExtensionFilter fileFilter = new FileNameExtensionFilter("Tile Map", "map");
 	public void actionPerformed(ActionEvent ae){
-		fileDialog.setFileFilter(fileFilter);
-		
-		String cmd = ae.getActionCommand();
-		if(cmd.equals("Open")){
-			int returnVal = fileDialog.showOpenDialog(this);
-			if(returnVal == JFileChooser.APPROVE_OPTION) {
-				System.out.println("Opening: " + fileDialog.getSelectedFile());
-				map = TileMap.load(fileDialog.getSelectedFile(), tiles);
-				mapRenderer.tileMap = map;
+		try{
+			fileDialog.setFileFilter(fileFilter);
+			
+			String cmd = ae.getActionCommand();
+			if(cmd.equals("Open")){
+				int returnVal = fileDialog.showOpenDialog(this);
+				if(returnVal == JFileChooser.APPROVE_OPTION) {
+					System.out.println("Opening: " + fileDialog.getSelectedFile());
+					map = TileMap.load(fileDialog.getSelectedFile(), tiles);
+					mapRenderer.tileMap = map;
+				}
+			}else if(cmd.equals("Save")){
+				int returnVal = fileDialog.showSaveDialog(this);
+				if(returnVal == JFileChooser.APPROVE_OPTION) {
+					System.out.println("Saving: " + fileDialog.getSelectedFile());
+					map.save(fileDialog.getSelectedFile(), tiles);
+				}
 			}
-		}else if(cmd.equals("Save")){
-			int returnVal = fileDialog.showSaveDialog(this);
-			if(returnVal == JFileChooser.APPROVE_OPTION) {
-				System.out.println("Saving: " + fileDialog.getSelectedFile());
-				map.save(fileDialog.getSelectedFile(), tiles);
-			}
+		}catch(Exception exc){
+			throw new RuntimeException(exc);
 		}
 	}
 	
